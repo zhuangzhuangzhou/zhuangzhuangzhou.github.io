@@ -189,6 +189,15 @@
 
     
     
+      
+      
+        
+        
+        
+      
+
+      
+    
 
     
       
@@ -212,8 +221,8 @@
             
               
                 
-                <a class="post-title-link" href="/2016/12/27/iOS中像素的操作/" itemprop="url">
-                  [object Object]
+                <a class="post-title-link" href="/2016/09/16/KVC的使用/" itemprop="url">
+                  关于KVC的一些总结
                 </a>
               
             
@@ -226,8 +235,8 @@
               <i class="fa fa-calendar-o"></i>
             </span>
             <span class="post-meta-item-text">發表於</span>
-            <time itemprop="dateCreated" datetime="2016-12-27T19:19:14+08:00" content="2016-12-27">
-              2016-12-27
+            <time itemprop="dateCreated" datetime="2016-09-16T00:00:00+08:00" content="2016-09-16">
+              2016-09-16
             </time>
           </span>
 
@@ -254,7 +263,10 @@
       
         
           
-            <figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;#define Mask8(x) ( (x) &#38; 0xFF)&#10;#define R(x) ( Mask8(x) )&#10;#define G(x) ( Mask8(x &#62;&#62; 8 ) )&#10;#define B(x) ( Mask8(x &#62;&#62; 16) )&#10;#define A(x) ( Mask8(x &#62;&#62; 24) )&#10;#define RGBAMake(r, g, b, a) ( Mask8(r) | Mask8(g) &#60;&#60; 8 | Mask8(b) &#60;&#60; 16 | Mask8(a) &#60;&#60; 24 )&#10;&#10;- (UIImage *)processUsingPixels:(UIImage *)image&#123;&#10;    &#10;   //1.&#33719;&#24471;&#22270;&#29255;&#30340;&#20687;&#32032; &#20197;&#21450;&#19978;&#19979;&#25991;&#10;    UInt32 *inputPixels;&#10;    CGImageRef inputCGImage = [image CGImage];&#10;    size_t w = CGImageGetWidth(inputCGImage);&#10;    size_t h = CGImageGetHeight(inputCGImage);&#10;    &#10;    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();&#10;    &#10;    NSInteger bytesPerPixel = 4;//&#27599;&#20010;&#20687;&#32032;&#30340;&#23383;&#33410;&#25968;&#10;    NSInteger bitsPerComponent = 8;//&#27599;&#20010;&#32452;&#25104;&#20687;&#32032;&#30340; &#20301;&#28145;&#10;    NSInteger bitmapBytesPerRow = w * bytesPerPixel;//&#27599;&#34892;&#23383;&#33410;&#25968;&#10;    &#10;    inputPixels = (UInt32 *)calloc(w * h , sizeof(UInt32));//&#36890;&#36807;calloc&#24320;&#36767;&#19968;&#27573;&#36830;&#32493;&#30340;&#20869;&#23384;&#31354;&#38388;&#10;    &#10;    CGContextRef context = CGBitmapContextCreate(inputPixels, w, h, bitsPerComponent, bitmapBytesPerRow, colorSpace, kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);&#10;    &#10;    CGContextDrawImage(context, CGRectMake(0, 0, w, h), inputCGImage);&#10;    &#10;&#10;    &#10;    //2&#21462;&#20855;&#20307;&#26576;&#19968;&#20010;&#20687;&#32032;&#28857;&#30340;&#20540;&#10;    for (NSInteger j = 0; j &#60; h; j ++) &#123;&#10;        for (NSInteger i = 0 ; i &#60; w; i ++) &#123;&#10;            UInt32 *currentPixel = inputPixels + (w * j) + i;&#10;            UInt32 color = *currentPixel;&#10;            &#10;            //&#28784;&#24230;&#22270;&#10;            UInt32 max = MAX(MAX(R(color), G(color)), B(color));&#10;            &#10;            *currentPixel = RGBAMake(max, max, max, A(color));&#10;        &#125;&#10;    &#125;&#10;    &#10;    //3&#20174;&#19978;&#19979;&#25991;&#20013;&#21462;&#20986;&#10;    CGImageRef newImageRef = CGBitmapContextCreateImage(context);&#10;    UIImage *newImage = [UIImage imageWithCGImage:newImageRef];&#10;    &#10;    //4&#37322;&#25918;&#10;    CGColorSpaceRelease(colorSpace);&#10;    CGContextRelease(context);&#10;    free(inputPixels);&#10;    &#10;    return newImage;&#10;&#125;</span><br></pre></td></tr></table></figure>
+            <h5 id="一、KVC的基本概念"><a href="#一、KVC的基本概念" class="headerlink" title="一、KVC的基本概念"></a>一、KVC的基本概念</h5><p>​    Key-value coding,键值编码，是一种字符串标识符，间接访问对象的机制，而不是直接调用setter和getter方法。我们通常使用valueForKey来代替getter方法，setValue:forKey来代替setter方法。</p>
+<p>​    KVC写法示例：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Student *student = [[Student alloc] init];&#10;[student setValue:@&#34;&#24352;&#19977;&#34; forKey:@&#34;name&#34;];</span><br></pre></td></tr></table></figure>
+<p><a href="http://www.tuicool.com/articles/2aYfy2" target="_blank" rel="external">原文链接</a></p>
 
           
         
@@ -296,8 +308,8 @@
             
               
                 
-                <a class="post-title-link" href="/2016/12/27/hello-world/" itemprop="url">
-                  Hello World1
+                <a class="post-title-link" href="/2016/03/09/runtime学习总结/" itemprop="url">
+                  runtime总结
                 </a>
               
             
@@ -310,8 +322,8 @@
               <i class="fa fa-calendar-o"></i>
             </span>
             <span class="post-meta-item-text">發表於</span>
-            <time itemprop="dateCreated" datetime="2016-12-27T19:01:44+08:00" content="2016-12-27">
-              2016-12-27
+            <time itemprop="dateCreated" datetime="2016-03-09T00:00:00+08:00" content="2016-03-09">
+              2016-03-09
             </time>
           </span>
 
@@ -338,99 +350,7 @@
       
         
           
-            <p>Welcome to <a href="https://hexo.io/" target="_blank" rel="external">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="external">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="external">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="external">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="external">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="external">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="external">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/deployment.html" target="_blank" rel="external">Deployment</a></p>
-
-          
-        
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2016/12/27/runtime学习总结/" itemprop="url">
-                  未命名
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">發表於</span>
-            <time itemprop="dateCreated" datetime="2016-12-27T15:43:43+08:00" content="2016-12-27">
-              2016-12-27
-            </time>
-          </span>
-
-          
-
-          
-            
-          
-
-          
-
-          
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h2 id="runtime-的学习"><a href="#runtime-的学习" class="headerlink" title="runtime 的学习"></a>runtime 的学习</h2><h4 id="一、runtime简介"><a href="#一、runtime简介" class="headerlink" title="一、runtime简介"></a>一、runtime简介</h4><ul>
+            <h4 id="一、runtime简介"><a href="#一、runtime简介" class="headerlink" title="一、runtime简介"></a>一、runtime简介</h4><ul>
 <li>Runtime 简称运行时。OC就是<code>运行时机制</code>,其中主要就是<code>消息机制</code>。</li>
 <li>对于C语言，函数在<code>编译期</code>就会决定调用哪个函数。</li>
 <li>对于OC函数，属于<code>动态调用</code>，在编译期并不能真正决定调用哪个函数，只有在真正运行时候才会根据函数的名称找到对应的函数来调用。</li>
@@ -498,8 +418,8 @@
             
               
                 
-                <a class="post-title-link" href="/2016/12/19/KVC的使用/" itemprop="url">
-                  未命名
+                <a class="post-title-link" href="/2016/02/02/iOS中像素的操作/" itemprop="url">
+                  iOS中像素的操作
                 </a>
               
             
@@ -512,8 +432,8 @@
               <i class="fa fa-calendar-o"></i>
             </span>
             <span class="post-meta-item-text">發表於</span>
-            <time itemprop="dateCreated" datetime="2016-12-19T13:58:38+08:00" content="2016-12-19">
-              2016-12-19
+            <time itemprop="dateCreated" datetime="2016-02-02T00:00:00+08:00" content="2016-02-02">
+              2016-02-02
             </time>
           </span>
 
@@ -540,10 +460,7 @@
       
         
           
-            <h2 id="KVC的使用"><a href="#KVC的使用" class="headerlink" title="KVC的使用"></a>KVC的使用</h2><h5 id="一、KVC的基本概念"><a href="#一、KVC的基本概念" class="headerlink" title="一、KVC的基本概念"></a>一、KVC的基本概念</h5><p>​    Key-value coding,键值编码，是一种字符串标识符，间接访问对象的机制，而不是直接调用setter和getter方法。我们通常使用valueForKey来代替getter方法，setValue:forKey来代替setter方法。</p>
-<p>​    KVC写法示例：</p>
-<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Student *student = [[Student alloc] init];&#10;[student setValue:@&#34;&#24352;&#19977;&#34; forKey:@&#34;name&#34;];</span><br></pre></td></tr></table></figure>
-<p><a href="http://www.tuicool.com/articles/2aYfy2" target="_blank" rel="external">原文链接</a></p>
+            <figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#10;#define Mask8(x) ( (x) &#38; 0xFF)&#10;#define R(x) ( Mask8(x) )&#10;#define G(x) ( Mask8(x &#62;&#62; 8 ) )&#10;#define B(x) ( Mask8(x &#62;&#62; 16) )&#10;#define A(x) ( Mask8(x &#62;&#62; 24) )&#10;#define RGBAMake(r, g, b, a) ( Mask8(r) | Mask8(g) &#60;&#60; 8 | Mask8(b) &#60;&#60; 16 | Mask8(a) &#60;&#60; 24 )&#10;&#10;- (UIImage *)processUsingPixels:(UIImage *)image&#123;&#10;    &#10;   //1.&#33719;&#24471;&#22270;&#29255;&#30340;&#20687;&#32032; &#20197;&#21450;&#19978;&#19979;&#25991;&#10;    UInt32 *inputPixels;&#10;    CGImageRef inputCGImage = [image CGImage];&#10;    size_t w = CGImageGetWidth(inputCGImage);&#10;    size_t h = CGImageGetHeight(inputCGImage);&#10;    &#10;    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();&#10;    &#10;    NSInteger bytesPerPixel = 4;//&#27599;&#20010;&#20687;&#32032;&#30340;&#23383;&#33410;&#25968;&#10;    NSInteger bitsPerComponent = 8;//&#27599;&#20010;&#32452;&#25104;&#20687;&#32032;&#30340; &#20301;&#28145;&#10;    NSInteger bitmapBytesPerRow = w * bytesPerPixel;//&#27599;&#34892;&#23383;&#33410;&#25968;&#10;    &#10;    inputPixels = (UInt32 *)calloc(w * h , sizeof(UInt32));//&#36890;&#36807;calloc&#24320;&#36767;&#19968;&#27573;&#36830;&#32493;&#30340;&#20869;&#23384;&#31354;&#38388;&#10;    &#10;    CGContextRef context = CGBitmapContextCreate(inputPixels, w, h, bitsPerComponent, bitmapBytesPerRow, colorSpace, kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);&#10;    &#10;    CGContextDrawImage(context, CGRectMake(0, 0, w, h), inputCGImage);&#10;    &#10;&#10;    &#10;    //2&#21462;&#20855;&#20307;&#26576;&#19968;&#20010;&#20687;&#32032;&#28857;&#30340;&#20540;&#10;    for (NSInteger j = 0; j &#60; h; j ++) &#123;&#10;        for (NSInteger i = 0 ; i &#60; w; i ++) &#123;&#10;            UInt32 *currentPixel = inputPixels + (w * j) + i;&#10;            UInt32 color = *currentPixel;&#10;            &#10;            //&#28784;&#24230;&#22270;&#10;            UInt32 max = MAX(MAX(R(color), G(color)), B(color));&#10;            &#10;            *currentPixel = RGBAMake(max, max, max, A(color));&#10;        &#125;&#10;    &#125;&#10;    &#10;    //3&#20174;&#19978;&#19979;&#25991;&#20013;&#21462;&#20986;&#10;    CGImageRef newImageRef = CGBitmapContextCreateImage(context);&#10;    UIImage *newImage = [UIImage imageWithCGImage:newImageRef];&#10;    &#10;    //4&#37322;&#25918;&#10;    CGColorSpaceRelease(colorSpace);&#10;    CGContextRelease(context);&#10;    free(inputPixels);&#10;    &#10;    return newImage;&#10;&#125;</span><br></pre></td></tr></table></figure>
 
           
         
@@ -606,7 +523,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">4</span>
+              <span class="site-state-item-count">3</span>
               <span class="site-state-item-name">文章</span>
             </a>
           </div>
