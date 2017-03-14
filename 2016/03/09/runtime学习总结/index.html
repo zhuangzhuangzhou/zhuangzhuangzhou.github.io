@@ -13,24 +13,134 @@
 <li>objc_msgSend,只有对象才能发送消息，因此以objc开头。</li>
 <li>使用消息机制的前提，需导入<code>#import &lt;objc/message.h&gt;</code></li>
 </ul>
-<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">//&#21019;&#24314;person&#23545;&#35937;&#10;Person *p = [[Person alloc]init];&#10;&#10;//&#35843;&#29992;&#23545;&#35937;&#26041;&#27861;&#10;[p eat];&#10;&#10;//&#26412;&#36136;&#10;objc_msgSend(p,@selector(eat));</span><br></pre></td></tr></table></figure>
+<pre><code class="objective-c">//创建person对象
+Person *p = [[Person alloc]init];
+
+//调用对象方法
+[p eat];
+
+//本质
+objc_msgSend(p,@selector(eat));
+</code></pre>
 <h5 id="2-交换方法"><a href="#2-交换方法" class="headerlink" title="2.交换方法"></a>2.交换方法</h5><p>场景：系统自带的方法功能不够，给系统自带方法扩展一些功能，并保持原有功能。</p>
 <ul>
 <li>方法一：继承系统的类，重写方法。</li>
 <li>方法二：使用runtime,交换方法。     </li>
 </ul>
-<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">@implementation UIImage (imageWithName)&#10;&#10;+ (void)load&#123;&#10;    //&#20132;&#25442;&#26041;&#27861;&#10;    &#10;    //&#33719;&#21462;imagwWithName&#26041;&#27861;&#22320;&#22336;&#10;    Method imageWithName = class_getClassMethod(self, @selector(imageWithName:));&#10;    &#10;    //&#33719;&#21462;imageNamed&#26041;&#27861;&#22320;&#22336;&#10;    Method imageName = class_getClassMethod(self, @selector(imageNamed:));&#10;    &#10;    //&#20132;&#25442;&#26041;&#27861;&#22320;&#22336;&#65292;&#30456;&#24403;&#20110;&#20132;&#25442;&#26041;&#27861;&#30340;&#23454;&#29616;&#10;    method_exchangeImplementations(imageWithName, imageName);&#10;&#125;&#10;&#10;+ (instancetype)imageWithName:(NSString *)name&#123;&#10;    //&#36825;&#37324;&#35843;&#29992;imageWithName &#30456;&#24403;&#20110;&#35843;&#29992;imageNamed(&#22240;&#20026;&#26041;&#27861;&#35843;&#25442;&#20102;)&#10;    UIImage *image = [self imageWithName:name];&#10;    if (image == nil) &#123;&#10;        NSLog(@&#34;&#21152;&#36733;&#22270;&#29255;&#20026;&#31354;&#34;);&#10;    &#125;&#10;    return  image;&#10;&#125;</span><br></pre></td></tr></table></figure>
+<pre><code class="objective-c">@implementation UIImage (imageWithName)
+
++ (void)load{
+    //交换方法
+
+    //获取imagwWithName方法地址
+    Method imageWithName = class_getClassMethod(self, @selector(imageWithName:));
+
+    //获取imageNamed方法地址
+    Method imageName = class_getClassMethod(self, @selector(imageNamed:));
+
+    //交换方法地址，相当于交换方法的实现
+    method_exchangeImplementations(imageWithName, imageName);
+}
+
++ (instancetype)imageWithName:(NSString *)name{
+    //这里调用imageWithName 相当于调用imageNamed(因为方法调换了)
+    UIImage *image = [self imageWithName:name];
+    if (image == nil) {
+        NSLog(@&quot;加载图片为空&quot;);
+    }
+    return  image;
+}
+</code></pre>
 <p>然后这里只需要在需要的地方调用<code>+(UIImage)imageNamed:</code>方法就可以了，例如：</p>
-<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">@implementation ViewController&#10;&#10;- (void)viewDidLoad &#123;&#10;    [super viewDidLoad];&#10;    // Do any additional setup after loading the view, typically from a nib.&#10;    UIImage *image = [UIImage imageNamed:@&#34;123&#34;];&#10;&#125;</span><br></pre></td></tr></table></figure>
+<pre><code class="objective-c">@implementation ViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view, typically from a nib.
+    UIImage *image = [UIImage imageNamed:@&quot;123&quot;];
+}
+</code></pre>
 <p>如果图片不存在的话，console就会输出<code>加载图片为空</code>。</p>
-<h5 id="3-动态添加方法"><a href="#3-动态添加方法" class="headerlink" title="3.动态添加方法"></a>3.动态添加方法</h5><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">- (void)viewDidLoad &#123;&#10;    [super viewDidLoad];&#10;    // Do any additional setup after loading the view, typically from a nib.&#10;    &#10;    Person *p = [[Person alloc]init];&#10;    &#10;    //person &#27809;&#26377;&#23454;&#29616;eat&#26041;&#27861;&#65292;&#21487;&#20197;&#36890;&#36807;performSelctor&#35843;&#29992;&#10;    [p performSelector:@selector(eat)];&#10;    //[p eat];&#27491;&#24120;&#35843;&#29992;&#20250;&#25253;&#38169;&#10;&#10;&#125;</span><br></pre></td></tr></table></figure>
-<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">#import &#34;Person.h&#34;&#10;#import &#60;objc/runtime.h&#62;&#10;@implementation Person&#10;&#10;&#10;//void(*)()&#10;//&#40664;&#35748;&#26041;&#27861;&#37117;&#26377;&#20004;&#20010;&#38544;&#24335;&#21442;&#25968;&#10;void  eat(id self,SEL sel)&#123;&#10;    NSLog(@&#34;%@ %@&#34;,self,NSStringFromSelector(sel));&#10;&#125;&#10;&#10;&#10;//&#36825;&#26159;NSObject&#26681;&#31867;&#25552;&#20379;&#30340;&#31867;&#26041;&#27861;&#65292;&#35843;&#29992;&#26102;&#26426;&#20026;&#24403;&#34987;&#35843;&#29992;&#30340;&#26041;&#27861;&#23454;&#29616;&#37096;&#20998;&#27809;&#26377;&#25214;&#21040;&#65292;&#32780;&#28040;&#24687;&#36716;&#21457;&#26426;&#21046;&#21551;&#21160;&#20043;&#21069;&#30340;&#36825;&#20010;&#20013;&#38388;&#26102;&#21051;&#12290;&#10;+ (BOOL)resolveInstanceMethod:(SEL)sel&#123;&#10;    if (sel == @selector(eat)) &#123;&#10;        //&#21160;&#24577;&#28155;&#21152;eat&#26041;&#27861;&#10;        &#10;        /**&#10;         *  &#21160;&#24577;&#28155;&#21152;&#26041;&#27861;&#10;         *&#10;         *  @param self cls:&#20026;&#21738;&#20010;&#31867;&#28155;&#21152;&#26041;&#27861;&#10;         *  @param sel  SEL:&#28155;&#21152;&#26041;&#27861;&#30340;&#26041;&#27861;&#32534;&#21495;&#65288;&#26041;&#27861;&#21517;&#65289;&#26159;&#20160;&#20040;&#10;         *  @param IMP  IMP:&#26041;&#27861;&#23454;&#29616;&#10;         *  @param const char * types&#26041;&#27861;&#31867;&#22411;&#10;         *&#10;         *  @return &#36820;&#22238;&#26159;&#21542;&#28155;&#21152;&#25104;&#21151;&#10;         */&#10;        class_addMethod(self, sel, (IMP)eat, &#34;v@:@&#34;);&#10;        //class_addMethod(self, @selector(eat), eat, &#34;v@:@&#34;);&#10;        &#10;    &#125;&#10;    return [super resolveInstanceMethod:sel];&#10;&#125;&#10;&#10;@end</span><br></pre></td></tr></table></figure>
+<h5 id="3-动态添加方法"><a href="#3-动态添加方法" class="headerlink" title="3.动态添加方法"></a>3.动态添加方法</h5><pre><code class="objective-c">- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view, typically from a nib.
+
+    Person *p = [[Person alloc]init];
+
+    //person 没有实现eat方法，可以通过performSelctor调用
+    [p performSelector:@selector(eat)];
+    //[p eat];正常调用会报错
+
+}
+</code></pre>
+<pre><code class="objective-c">#import &quot;Person.h&quot;
+#import &lt;objc/runtime.h&gt;
+@implementation Person
+
+
+//void(*)()
+//默认方法都有两个隐式参数
+void  eat(id self,SEL sel){
+    NSLog(@&quot;%@ %@&quot;,self,NSStringFromSelector(sel));
+}
+
+
+//这是NSObject根类提供的类方法，调用时机为当被调用的方法实现部分没有找到，而消息转发机制启动之前的这个中间时刻。
++ (BOOL)resolveInstanceMethod:(SEL)sel{
+    if (sel == @selector(eat)) {
+        //动态添加eat方法
+
+        /**
+         *  动态添加方法
+         *
+         *  @param self cls:为哪个类添加方法
+         *  @param sel  SEL:添加方法的方法编号（方法名）是什么
+         *  @param IMP  IMP:方法实现
+         *  @param const char * types方法类型
+         *
+         *  @return 返回是否添加成功
+         */
+        class_addMethod(self, sel, (IMP)eat, &quot;v@:@&quot;);
+        //class_addMethod(self, @selector(eat), eat, &quot;v@:@&quot;);
+
+    }
+    return [super resolveInstanceMethod:sel];
+}
+
+@end
+</code></pre>
 <p>值得注意的是，最后一个参数<code>@param const char *types</code>不太常用，通过官方文档查阅得知如下:</p>
 <p><img src="http://upload-images.jianshu.io/upload_images/1594999-d3e3d9c131eb1ccf.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""></p>
 <h5 id="4-动态添加属性"><a href="#4-动态添加属性" class="headerlink" title="4.动态添加属性"></a>4.动态添加属性</h5><ul>
 <li><code>category</code>中只能添加方法而不能直接添加属性，所以我们常常需要动态地来添加属性。</li>
 <li>给一个类声明属性，其本质是给这个类添加关联，而不是直接把这个值得内存空间添加到类的内存空间中去。</li>
 </ul>
-<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">- (void)viewDidLoad &#123;&#10;    [super viewDidLoad];&#10;    // Do any additional setup after loading the view, typically from a nib.&#10;    //&#32473;&#31995;&#32479;&#30340;NSObject&#31867;&#21160;&#24577;&#28155;&#21152;&#23646;&#24615;name&#10;    NSObject *object = [[NSObject alloc]init];&#10;    object.name = @&#34;&#22766;&#22766;&#34;;&#10;    NSLog(@&#34;%@&#34;,object.name);&#10;&#125;</span><br></pre></td></tr></table></figure>
-<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">@implementation NSObject (property)&#10;&#10;- (NSString *)name&#123;&#10;    //&#26681;&#25454;&#20851;&#32852;&#30340;key,&#33719;&#21462;&#20851;&#32852;&#30340;&#20540;&#10;    return objc_getAssociatedObject(self, key);&#10;&#125;&#10;&#10;- (void)setName:(NSString *)name&#123;&#10;    /**&#10;     &#21442;&#25968;1&#65306;&#32473;&#21738;&#20010;&#23545;&#35937;&#28155;&#21152;&#20851;&#32852;&#10;     &#21442;&#25968;2&#65306;&#20851;&#32852;&#30340;key,&#36890;&#36807;&#36825;&#20010;key&#26469;&#33719;&#21462;&#10;     &#21442;&#25968;3&#65306;&#31649;&#29702;&#30340;value&#10;     &#21442;&#25968;4&#65306;&#20851;&#32852;&#30340;&#31574;&#30053;&#10;     */&#10;    objc_setAssociatedObject(self, key, name, OBJC_ASSOCIATION_RETAIN_NONATOMIC);&#10;&#125;&#10;&#10;@end</span><br></pre></td></tr></table></figure>
-</div><script type="text/javascript" src="/js/share.js?v=0.0.0" async></script><a data-url="zhuangzhuangzhou.github.io/2016/03/09/runtime学习总结/" data-id="cj09b8gdg00017ciit7eq3udl" class="article-share-link">分享至</a><div class="tags"></div><div class="post-nav"><a href="/2016/09/16/KVC的使用/" class="pre">关于KVC的一些总结</a><a href="/2016/02/02/iOS中像素的操作/" class="next">iOS中像素的操作</a></div></div></div></div><div class="pure-u-1-4 hidden_mid_and_down"><div id="sidebar"><div class="widget"><form action="//www.google.com/search" method="get" accept-charset="utf-8" target="_blank" class="search-form"><input type="text" name="q" maxlength="20" placeholder="Search"/><input type="hidden" name="sitesearch" value="zhuangzhuangzhou.github.io"/></form></div><div class="widget"><div class="widget-title"><i class="fa fa-folder-o"> 分類</i></div></div><div class="widget"><div class="widget-title"><i class="fa fa-star-o"> 標籤</i></div><div class="tagcloud"></div></div><div class="widget"><div class="widget-title"><i class="fa fa-file-o"> 最新文章</i></div><ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2017/03/14/WKWebViewTips/">WKWebViewTips</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/02/02/Mac下Sublime Text3 Python开发环境的配置/">Mac下Sublime Text3 Python开发环境的配置</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/09/16/KVC的使用/">关于KVC的一些总结</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/03/09/runtime学习总结/">runtime总结</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/02/02/iOS中像素的操作/">iOS中像素的操作</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-external-link"> 友站連結</i></div><ul></ul><a href="http://www.example1.com/" title="site-name1" target="_blank">site-name1</a><ul></ul><a href="http://www.example2.com/" title="site-name2" target="_blank">site-name2</a><ul></ul><a href="http://www.example3.com/" title="site-name3" target="_blank">site-name3</a></div></div></div><div class="pure-u-1 pure-u-md-3-4"><div id="footer">© <a href="/." rel="nofollow">壮壮的个人博客.</a> Powered by<a rel="nofollow" target="_blank" href="https://hexo.io"> Hexo.</a><a rel="nofollow" target="_blank" href="https://github.com/tufu9441/maupassant-hexo"> Theme</a> by<a rel="nofollow" target="_blank" href="https://github.com/pagecho"> Cho.</a></div></div></div><a id="rocket" href="#top" class="show"></a><script type="text/javascript" src="/js/totop.js?v=0.0.0" async></script><script type="text/javascript" src="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.pack.js" async></script><script type="text/javascript" src="/js/fancybox.js?v=0.0.0" async></script><link rel="stylesheet" type="text/css" href="/css/jquery.fancybox.css?v=0.0.0"><script type="text/javascript" src="/js/codeblock-resizer.js?v=0.0.0"></script><script type="text/javascript" src="/js/smartresize.js?v=0.0.0"></script></div></body></html>
+<pre><code class="objective-c">- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view, typically from a nib.
+    //给系统的NSObject类动态添加属性name
+    NSObject *object = [[NSObject alloc]init];
+    object.name = @&quot;壮壮&quot;;
+    NSLog(@&quot;%@&quot;,object.name);
+}
+</code></pre>
+<pre><code class="objective-c">@implementation NSObject (property)
+
+- (NSString *)name{
+    //根据关联的key,获取关联的值
+    return objc_getAssociatedObject(self, key);
+}
+
+- (void)setName:(NSString *)name{
+    /**
+     参数1：给哪个对象添加关联
+     参数2：关联的key,通过这个key来获取
+     参数3：管理的value
+     参数4：关联的策略
+     */
+    objc_setAssociatedObject(self, key, name, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+@end
+</code></pre>
+</div><script type="text/javascript" src="/js/share.js?v=0.0.0" async></script><a data-url="zhuangzhuangzhou.github.io/2016/03/09/runtime学习总结/" data-id="cj09bzb5g0001c9iiffb4cvcx" class="article-share-link">分享至</a><div class="tags"></div><div class="post-nav"><a href="/2016/09/16/KVC的使用/" class="pre">关于KVC的一些总结</a><a href="/2016/02/02/iOS中像素的操作/" class="next">iOS中像素的操作</a></div></div></div></div><div class="pure-u-1-4 hidden_mid_and_down"><div id="sidebar"><div class="widget"><form action="//www.google.com/search" method="get" accept-charset="utf-8" target="_blank" class="search-form"><input type="text" name="q" maxlength="20" placeholder="Search"/><input type="hidden" name="sitesearch" value="zhuangzhuangzhou.github.io"/></form></div><div class="widget"><div class="widget-title"><i class="fa fa-folder-o"> 分類</i></div></div><div class="widget"><div class="widget-title"><i class="fa fa-star-o"> 標籤</i></div><div class="tagcloud"></div></div><div class="widget"><div class="widget-title"><i class="fa fa-file-o"> 最新文章</i></div><ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2017/03/14/WKWebViewTips/">WKWebViewTips</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/02/02/Mac下Sublime Text3 Python开发环境的配置/">Mac下Sublime Text3 Python开发环境的配置</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/09/16/KVC的使用/">关于KVC的一些总结</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/03/09/runtime学习总结/">runtime总结</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/02/02/iOS中像素的操作/">iOS中像素的操作</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-external-link"> 友站連結</i></div><ul></ul><a href="http://www.example1.com/" title="site-name1" target="_blank">site-name1</a><ul></ul><a href="http://www.example2.com/" title="site-name2" target="_blank">site-name2</a><ul></ul><a href="http://www.example3.com/" title="site-name3" target="_blank">site-name3</a></div></div></div><div class="pure-u-1 pure-u-md-3-4"><div id="footer">© <a href="/." rel="nofollow">壮壮的个人博客.</a> Powered by<a rel="nofollow" target="_blank" href="https://hexo.io"> Hexo.</a><a rel="nofollow" target="_blank" href="https://github.com/tufu9441/maupassant-hexo"> Theme</a> by<a rel="nofollow" target="_blank" href="https://github.com/pagecho"> Cho.</a></div></div></div><a id="rocket" href="#top" class="show"></a><script type="text/javascript" src="/js/totop.js?v=0.0.0" async></script><script type="text/javascript" src="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.pack.js" async></script><script type="text/javascript" src="/js/fancybox.js?v=0.0.0" async></script><link rel="stylesheet" type="text/css" href="/css/jquery.fancybox.css?v=0.0.0"><script type="text/javascript" src="/js/codeblock-resizer.js?v=0.0.0"></script><script type="text/javascript" src="/js/smartresize.js?v=0.0.0"></script></div></body></html>
